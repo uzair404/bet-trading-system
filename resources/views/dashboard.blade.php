@@ -109,18 +109,11 @@
                 display: none;
             }
         </style>
-        {{-- Date: MM-DD-YYY (format)
-                League: (user text input)
-                Bet: (user text input)
-                Type: "Straight" or "Parlay" (user select option)
-                Outcome: "Win" or "Loss" (user select option)
-                Risk: float (user input float)
-                Reward: float (user input float)
-                Profit: if (Outcome == "Loss"), then ( = -Risk); else (Reward - Risk) --}}
         <script>
             $(document).ready(function() {
-                $('[data-toggle="tooltip"]').tooltip();
-                var actions = $("table td:last-child").html();
+                
+                var actions = `<a class="add" ><i class="material-icons">&#xE03B;</i></a>
+                                    <a class="delete"><i class="material-icons">&#xE872;</i></a>`;
                 // Append table with add row form on add new button click
                 $(".add-new").click(function() {
                     $(this).attr("disabled", "disabled");
@@ -128,33 +121,20 @@
                     var row = '<tr>' +
                         '<td><input type="date" class="form-control" name="date" id="date"></td>' +
                         '<td><input type="text" class="form-control" name="league" id="league"></td>' +
-                        '<td><input type="text" class="form-control" name="Bet" id="Bet"></td>' +
+                        '<td><input type="text" class="form-control" name="Bet" id="bet"></td>' +
                         '<td><select class="form-control" name="type" id="type"><option value="Straight">Straight</option><option value="Parlay">Parlay</option></select></td>' +
                         '<td><select class="form-control" name="outcome" id="outcome"><option value="Win">Win</option><option value="Loss">Loss</option></select></td>' +
                         '<td><input type="number" class="form-control" step="any" name="risk" id="risk"></td>' +
                         '<td><input type="number" class="form-control" step="any" name="reward" id="reward"></td>' +
-                        '<td id="profit"></td>' +
+                        '<td><span id="profit">...</span></td>' +
                         '<td>' + actions + '</td>' +
                         '</tr>';
                     $("table").append(row);
-                    $("table tbody tr").eq(index + 1).find(".add, .edit").toggle();
-                    $('[data-toggle="tooltip"]').tooltip();
+                    $("table tbody tr").eq(index + 1).find(".add").show();
+                    
                 });
                 // Add row on add button click
                 $(document).on("click", ".add", function() {
-                    //set profit
-                    let Outcome = $('#outcome').val();
-                    let Risk = $('#risk').val();
-                    let Reward = $('#reward').val();
-                    if (Outcome == "Loss"){
-                        profit = -Risk;
-                    } else {
-                        profit = Reward - Risk;
-                    }
-                    $("#profit").html(profit);
-
-
-
                     var empty = false;
                     var input = $(this).parents("tr").find('input,select');
                     input.each(function() {
@@ -166,27 +146,80 @@
                         }
                     });
                     $(this).parents("tr").find(".error").first().focus();
+                    parent = $(this).parents("tr");
                     if (!empty) {
-                        input.each(function() {
-                            $(this).parent("td").html($(this).val());
+                        // Ajax request to add a new bet
+                        $(".add").attr("disabled", "disabled");
+                        $.ajax({
+                            url: '/bet/add',
+                            type: 'POST',
+                            data: {
+                                '_token' : '{{csrf_token()}}',
+                                date: $('#date').val(),
+                                league: $('#league').val(),
+                                bet: $('#bet').val(),
+                                type: $('#type').val(),
+                                outcome: $('#outcome').val(),
+                                risk: $('#risk').val(),
+                                reward: $('#reward').val(),
+                            },
+                            
+                            success: function (response) {
+                                alertify.success(response.message);
+                                $("#profit").html(response.profit);
+                                // update the table as needed
+                                input.each(function() {
+                                    $(this).parent("td").html($(this).val());
+                                });
+                                parent.attr('data-id', response.bet_id)
+                                $(".add").hide();
+                                $(".add-new").removeAttr("disabled");
+                                $(".add").removeAttr("disabled");
+                            },
+                            error: function (error) {
+                                console.error(error);
+                                alertify.error('Error adding bet, '+error.responseJSON.message);
+                                $(".add").removeAttr("disabled");
+                            }
                         });
-                        $(this).parents("tr").find(".add, .edit").toggle();
-                        $(".add-new").removeAttr("disabled");
-                    }
+                        
+                    }                    
                 });
                 // Edit row on edit button click
-                $(document).on("click", ".edit", function() {
-                    $(this).parents("tr").find("td:not(:last-child)").each(function() {
-                        $(this).html('<input type="text" class="form-control" value="' + $(this)
-                        .text() + '">');
-                    });
-                    $(this).parents("tr").find(".add, .edit").toggle();
-                    $(".add-new").attr("disabled", "disabled");
-                });
+                // $(document).on("click", ".edit", function() {
+                //     $(this).parents("tr").find("td:not(:last-child)").each(function() {
+                //         $(this).html('<input type="text" class="form-control" value="' + $(this)
+                //         .text() + '">');
+                //     });
+                //     $(this).parents("tr").find(".add, .edit").toggle();
+                //     $(".add-new").attr("disabled", "disabled");
+                // });
+                
                 // Delete row on delete button click
                 $(document).on("click", ".delete", function() {
-                    $(this).parents("tr").remove();
-                    $(".add-new").removeAttr("disabled");
+                    var betId = $(this).closest('tr').attr('data-id');
+                    parent = $(this).parents("tr");
+                    if (betId==undefined) {
+                        parent.remove();
+                        $(".add-new").removeAttr("disabled");
+                        return
+                    }
+                    // Ajax request to delete a bet
+                    $.ajax({
+                        url: '/bet/delete/' + betId,
+                        type: 'DELETE',
+                        data: {'_token' : '{{csrf_token()}}'},
+                        success: function (response) {
+                            // update the table as needed
+                            alertify.success(response.message);
+                            parent.remove();
+                            $(".add-new").removeAttr("disabled");
+                        },
+                        error: function (error) {
+                            console.error(error);
+                            alertify.error('Error deleting bet, '+error.responseJSON.message);
+                        }
+                    });
                 });
             });
         </script>
@@ -200,9 +233,6 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                {{-- <div class="p-6 text-gray-900 dark:text-gray-100">
-                    {{ __("You're logged in!") }}
-                </div> --}}
                 <div class="table-wrapper">
                     <div class="table-title">
                         <div class="row">
@@ -223,24 +253,29 @@
                                 <th>Risk</th>
                                 <th>Reward</th>
                                 <th>Profit</th>
+                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>22-10-2024</td>
-                                <td>Test</td>
-                                <td>Bet</td>
-                                <td>Parlay</td>
-                                <td>Win</td>
-                                <td>10</td>
-                                <td>5.1</td>
-                                <td>4.9</td>
-                                <td>
-                                    <a class="add" title="Add" data-toggle="tooltip"><i class="material-icons">&#xE03B;</i></a>
-                                    <a class="edit" title="Edit" data-toggle="tooltip"><i class="material-icons">&#xE254;</i></a>
-                                    <a class="delete" title="Delete" data-toggle="tooltip"><i class="material-icons">&#xE872;</i></a>
-                                </td>
-                            </tr>
+                            {{-- <tr>
+                                <td colspan="9" style="text-align:center;" id="no-data-err">No Data Found</td>
+                            </tr> --}}
+                            @foreach ($bets as $bet)
+                                <tr data-id="{{$bet->id}}">
+                                    <td>{{$bet->date}}</td>
+                                    <td>{{$bet->bet}}</td>
+                                    <td>{{$bet->league}}</td>
+                                    <td>{{$bet->type}}</td>
+                                    <td>{{$bet->outcome}}</td>
+                                    <td>{{$bet->risk}}</td>
+                                    <td>{{$bet->reward}}</td>
+                                    <td>{{$bet->profit}}</td>
+                                    <td>
+                                        <a class="add"><i class="material-icons">&#xE03B;</i></a>
+                                        <a class="delete"><i class="material-icons">&#xE872;</i></a>
+                                    </td>
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>
