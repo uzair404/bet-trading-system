@@ -263,8 +263,8 @@
                             @foreach ($bets as $bet)
                                 <tr data-id="{{$bet->id}}">
                                     <td>{{$bet->date}}</td>
-                                    <td>{{$bet->bet}}</td>
                                     <td>{{$bet->league}}</td>
+                                    <td>{{$bet->bet}}</td>
                                     <td>{{$bet->type}}</td>
                                     <td>{{$bet->outcome}}</td>
                                     <td>{{$bet->risk}}</td>
