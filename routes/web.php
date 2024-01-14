@@ -3,6 +3,7 @@
 use App\Http\Controllers\BetsController;
 use App\Http\Controllers\ProfileController;
 use App\Models\BetsModel;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,13 +26,22 @@ Route::get('/', function () {
 
 Route::get('/dashboard', function () {
     $data['bets'] = BetsModel::where('user_id', Auth::user()->id)->get();
+    $data['bets_dates'] = BetsModel::where('user_id', Auth::user()->id)->orderBy('id', 'ASC')->pluck('date')->toArray();
+    $data['bets_balance'] = BetsModel::where('user_id', Auth::user()->id)->orderBy('id', 'ASC')->pluck('rolling_balance')->toArray();
     return view('dashboard', $data);
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::post('/update-starting-balance', [BetsController::class, 'updateStartingBalance'])->name('update_starting_balance');
 
 Route::middleware(['auth','verified'])->group(function () {
     //apis
     Route::post('/bet/add', [BetsController::class, 'add_new']);
     Route::delete('/bet/delete/{id}', [BetsController::class, 'delete']);
+
+    Route::get('/get-starting-balance/{id}', function ($id) {
+        $starting_balance = User::where('id', $id)->first()->starting_balance;
+        return response()->json(['starting_balance' => $starting_balance]);
+    })->name('get_startingBalance');
 });
 
 Route::middleware('auth')->group(function () {

@@ -42,5 +42,19 @@
                 {{ $slot }}
             </main>
         </div>
+
+        @yield('scripts')
+        @if (session('error'))
+            <script>
+                alertify.error("{{ session('error') }}");
+            </script>
+        @endif
+        @if ($errors->any())
+            @foreach ($errors->all() as $error)
+                <script>
+                    alertify.error("{{ $error }}");
+                </script>
+            @endforeach
+        @endif
     </body>
 </html>

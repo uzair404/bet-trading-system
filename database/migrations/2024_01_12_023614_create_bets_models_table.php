@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('bets_models', function (Blueprint $table) {
             $table->id();
-            
+
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
@@ -22,9 +22,10 @@ return new class extends Migration
             $table->string('bet');
             $table->string('type');
             $table->string('outcome');
-            $table->integer('risk');
-            $table->integer('reward');
-            $table->integer('profit');
+            $table->float('risk');
+            $table->float('reward');
+            $table->float('profit');
+            $table->float('rolling_balance');
             $table->timestamps();
         });
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BetsModel;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Auth;
 
@@ -18,8 +19,8 @@ class BetsController extends Controller
             'bet'=>'required|max:20',
             'type'=>'required',
             'outcome'=>'required|in:win,loss,Loss,Win',
-            'risk'=>'required|integer',
-            'reward'=>'required|integer'
+            'risk'=>'required|numeric',
+            'reward'=>'required|numeric'
         ]);
 
         if (strtolower($request->input('outcome')) == "loss"){
@@ -27,6 +28,14 @@ class BetsController extends Controller
         } else {
             $profit = $request->input('reward') - $request->input('risk');
         }
+
+        $last_bet = BetsModel::where('user_id', Auth::user()->id)->latest()->first();
+        if (!$last_bet) {
+            $last_balance = User::where('id', Auth::user()->id)->first()->starting_balance;
+        }else{
+            $last_balance = $last_bet->rolling_balance;
+        }
+
         // Create a new Bet instance
         $bet = new BetsModel();
         $bet->user_id = Auth::user()->id;
@@ -38,11 +47,12 @@ class BetsController extends Controller
         $bet->risk = $request->input('risk');
         $bet->reward = $request->input('reward');
         $bet->profit = $profit;
+        $bet->rolling_balance = $profit+$last_balance;
 
         // Save the new Bet
         $bet->save();
 
-        return response()->json(['message' => 'Bet added successfully', 'profit'=>$profit, 'bet_id'=>$bet->id]);
+        return response()->json(['message' => 'Bet added successfully', 'profit'=>$profit, 'bet_id'=>$bet->id, 'rolling_balance'=>$bet->rolling_balance, 'date'=>$bet->date]);
     }
 
     public function edit(Request $request, $id)
@@ -72,6 +82,31 @@ class BetsController extends Controller
         $bet = BetsModel::findOrFail($id);
         $bet->delete();
 
-        return response()->json(['message' => 'Bet deleted successfully']);
+        return response()->json(['message' => 'Bet deleted successfully', 'rolling_balance'=>$bet->rolling_balance, 'date'=>$bet->date]);
+    }
+
+    public function updateStartingBalance(Request $request)
+    {
+        // Validate the incoming request data
+        $validatedData = $request->validate([
+            'starting_balance' => 'required|numeric|min:0',
+        ]);
+
+        $user = auth()->user();
+        $user->starting_balance = $validatedData['starting_balance'];
+        $user->save();
+
+        $BetsModel = BetsModel::where('user_id', Auth::user()->id)->orderBy('id', 'ASC')->get();
+        if (count($BetsModel)<1) {
+            // Redirect back or to a success page
+            return redirect()->back()->with('success', 'Starting balance updated successfully');
+        }
+        $last = $user->starting_balance;
+        foreach ($BetsModel as $key => $bet) {
+            $bet->rolling_balance = $bet->profit+$last;
+            $bet->update();
+            $last = $bet->rolling_balance;
+        }
+        return redirect()->back()->with('success', 'Starting balance updated successfully');
     }
 }
