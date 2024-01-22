@@ -26,7 +26,7 @@
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center mx-2">
                     <div class="relative text-gray-600">
                         <form action="{{url('/search')}}" method="get">
-                            <input type="search" name="serch" placeholder="Search"
+                            <input type="search" name="search" placeholder="Search"
                                 class="bg-white h-10 px-2 pr-10 rounded-md w-full text-sm focus:outline-none search-input">
                             <button type="submit" class="absolute right-0 top-0 mt-[0.75rem] mr-2">
                                 <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg"
@@ -99,7 +99,7 @@
             <div class="space-x-8 sm:-my-px sm:ms-10 items-center mx-2">
                 <div class="relative text-gray-600">
                     <form action="{{url('/search')}}" method="get">
-                        <input type="search" name="serch" placeholder="Search"
+                        <input type="search" name="search" placeholder="Search"
                             class="bg-white h-10 px-2 pr-10 rounded-md w-full text-sm focus:outline-none search-input">
                         <button type="submit" class="absolute right-0 top-0 mt-[0.75rem] mr-2">
                             <svg class="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg"

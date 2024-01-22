@@ -115,7 +115,7 @@
     @endsection
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Dashboard') }}
+            {{ __($user->user_name.' Dashboard') }}
         </h2>
     </x-slot>
 
@@ -126,24 +126,12 @@
                     <div class="table-title">
                         <div class="row">
                             <div class="col-sm-8">
-                                <h2>Your <b>Bet Details</b></h2>
-                            </div>
-                            <div class="col-sm-4">
-                                <button type="button" class="btn btn-info add-new"><i class="fa fa-plus"></i> Add
-                                    New</button>
+                                <h2>{{$user->user_name}} <b>Bet Details</b></h2>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-sm-12">
-                                <form action="{{ route('update_starting_balance') }}" method="post">
-                                    @csrf
-                                    <label for="starting_balance" style="display: inline;">Your Starting Balance :
-                                    </label>
-                                    <input class="form-control" step="any" style="width: 20%;display: inline;"
-                                        type="number" value="{{ Auth::user()->starting_balance }}"
-                                        name="starting_balance">
-                                    <button type="submit" class="btn btn-info" style="margin:0 auto;">Update</button>
-                                </form>
+                                <h6 for="starting_balance" style="display: inline;">Starting Balance : {{$user->starting_balance}}</h6>
                             </div>
                         </div>
                     </div>

@@ -4,6 +4,7 @@ use App\Http\Controllers\BetsController;
 use App\Http\Controllers\ProfileController;
 use App\Models\BetsModel;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -24,9 +25,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/search', function () {
-    return view('search');
-});
 Route::get('/dashboard', function () {
     $data['bets'] = BetsModel::where('user_id', Auth::user()->id)->get();
     $data['bets_dates'] = BetsModel::where('user_id', Auth::user()->id)->orderBy('id', 'ASC')->pluck('date')->toArray();
@@ -34,9 +32,34 @@ Route::get('/dashboard', function () {
     return view('dashboard', $data);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::post('/update-starting-balance', [BetsController::class, 'updateStartingBalance'])->name('update_starting_balance');
 
 Route::middleware(['auth','verified'])->group(function () {
+    Route::get('/search', function (Request $request) {
+        $search_term = $request->get('search');
+        if($search_term){
+            $data['results'] = User::where('type', 'public')
+            ->where(function ($query) use ($search_term) {
+                $query->where('user_name', 'LIKE', '%' . $search_term . '%')
+                    ->orWhere('name', 'LIKE', '%' . $search_term . '%')
+                    ->orWhere('email', 'LIKE', '%' . $search_term . '%');
+            })
+            ->get();
+
+        }else{
+            $data['results'] = User::Where('type', 'public')->get();
+        }
+        return view('search', $data);
+    });
+    Route::get('/profile/{user_name}', function ($user_name) {
+        $data['user'] = User::where('user_name', $user_name)->first();
+        $data['bets'] = BetsModel::where('user_id', $data['user']->id)->get();
+        $data['bets_dates'] = BetsModel::where('user_id', $data['user']->id)->orderBy('id', 'ASC')->pluck('date')->toArray();
+        $data['bets_balance'] = BetsModel::where('user_id', $data['user']->id)->orderBy('id', 'ASC')->pluck('rolling_balance')->toArray();
+        return view('view-profile', $data);
+    })->name('view.user-profile');
+
+
+    Route::post('/update-starting-balance', [BetsController::class, 'updateStartingBalance'])->name('update_starting_balance');
     //apis
     Route::post('/bet/add', [BetsController::class, 'add_new']);
     Route::delete('/bet/delete/{id}', [BetsController::class, 'delete']);
