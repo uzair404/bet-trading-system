@@ -23,7 +23,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <style>
-            
+
             .search-input{
                 display: block;
                 width: 100%;
@@ -73,6 +73,11 @@
         @if (session('error'))
             <script>
                 alertify.error("{{ session('error') }}");
+            </script>
+        @endif
+        @if (session('success'))
+            <script>
+                alertify.success("{{ session('success') }}");
             </script>
         @endif
         @if ($errors->any())

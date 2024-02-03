@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('type')->default('private');
             $table->float('starting_balance')->nullable();
+            $table->integer('isAdmin')->default(0);
             $table->rememberToken();
             $table->timestamps();
         });

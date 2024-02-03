@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\BetsController;
+use App\Http\Controllers\PostsController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CommentsController;
 use App\Models\BetsModel;
 use App\Models\User;
+use App\Models\Posts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +37,15 @@ Route::get('/dashboard', function () {
 
 
 Route::middleware(['auth','verified'])->group(function () {
+    Route::get('/blog', function (Request $request) {
+        $data['posts'] = Posts::orderBy('created_at', 'desc')->get();
+        return view('blog', $data);
+    })->name('blog');
+
+    //comment
+    Route::resource('comments', CommentsController::class);
+
+    Route::get('/blog/{slug}', [PostsController::class, 'show']);
     Route::get('/search', function (Request $request) {
         $search_term = $request->get('search');
         if($search_term){
@@ -50,6 +62,7 @@ Route::middleware(['auth','verified'])->group(function () {
         }
         return view('search', $data);
     });
+
     Route::get('/profile/{user_name}', function ($user_name) {
         $data['user'] = User::where('user_name', $user_name)->first();
         $data['bets'] = BetsModel::where('user_id', $data['user']->id)->get();
