@@ -15,6 +15,10 @@ class Posts extends Model
 
     public function comments()
     {
-        return $this->hasMany(Comments::class, 'post_id')->whereNull('parent_id');
+        return $this->hasMany(Comments::class, 'post_id')->whereNull('parent_id')->orderBy('id', 'DESC');
+    }
+    public function incrementReadCount() {
+        $this->view_count++;
+        return $this->save();
     }
 }

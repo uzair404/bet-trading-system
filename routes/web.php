@@ -89,4 +89,21 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+
+//admin routes
+Route::group(['middleware'=>['auth','admin'], 'prefix'=>'/admin', 'as'=>'admin.'], function () {
+
+    Route::get('/dashboard', function(){
+        return view('admin.dashboard');
+    })->name('dashboard');
+
+    Route::get('/posts', [PostsController::class, 'index'])->name('posts');
+    Route::get('/create-post', [PostsController::class, 'create'])->name('posts.create');
+    Route::post('/store-post', [PostsController::class, 'store'])->name('posts.store');
+    Route::get('/edit-post/{id}', [PostsController::class, 'edit'])->name('posts.edit');
+    Route::post('/update-post/{id}', [PostsController::class, 'update'])->name('posts.update');
+    Route::get('/post/{id}', [PostsController::class, 'destroy'])->name('posts.delete');
+
+});
+
 require __DIR__.'/auth.php';

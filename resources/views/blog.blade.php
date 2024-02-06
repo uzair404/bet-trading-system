@@ -9,7 +9,7 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
 
-                <div class="w-full  shadow p-5 rounded-lg bg-white">
+                {{-- <div class="w-full  shadow p-5 rounded-lg bg-white">
 
                     <div class="relative">
                         <div class="absolute flex items-center ml-2 h-full">
@@ -31,7 +31,7 @@
                         </button>
                     </div>
 
-                </div>
+                </div> --}}
 
 
                 <section class="text-gray-600 body-font overflow-hidden">
@@ -52,12 +52,29 @@
                           <div class="md:flex-grow">
                             <h2 class="text-2xl font-medium text-gray-900 title-font mb-2">{{$post->title}}</h2>
                             <p class="leading-relaxed">{{$post->summary}}</p>
-                            <a class="text-indigo-500 inline-flex items-center mt-4" href="{{url('/blog/'.$post->slug)}}">Learn More
-                              <svg class="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M5 12h14"></path>
-                                <path d="M12 5l7 7-7 7"></path>
-                              </svg>
-                            </a>
+                            @if (count($post->comments)>0)
+                                <h1 class="text-base font-bold">Comments</h1>
+                                @foreach ($post->comments->take(3) as $comment)
+                                    <div class="bg-white p-4 mb-4 shadow-md rounded-md">
+                                        <p class="text-gray-700">{{ $comment->body }}</p>
+                                        <span class="text-sm text-gray-500">{{ $comment->user->name }} -
+                                            {{ $comment->created_at->diffForHumans() }}</span>
+                                    </div>
+                                @endforeach
+                                <a class="text-indigo-500 inline-flex items-center mt-4" href="{{url('/blog/'.$post->slug)}}">Add Comment
+                                <svg class="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 12h14"></path>
+                                    <path d="M12 5l7 7-7 7"></path>
+                                </svg>
+                                </a>
+                            @else
+                                <a class="text-indigo-500 inline-flex items-center mt-4" href="{{url('/blog/'.$post->slug)}}">Learn More
+                                <svg class="w-4 h-4 ml-2" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 12h14"></path>
+                                    <path d="M12 5l7 7-7 7"></path>
+                                </svg>
+                                </a>
+                            @endif
                           </div>
                         </div>
 
