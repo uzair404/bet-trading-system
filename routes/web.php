@@ -46,6 +46,7 @@ Route::middleware(['auth','verified'])->group(function () {
     Route::resource('comments', CommentsController::class);
 
     Route::get('/blog/{slug}', [PostsController::class, 'show']);
+    Route::get('/vote/{post_id}/{reaction_id}', [PostsController::class, 'vote'])->name('react');
     Route::get('/search', function (Request $request) {
         $search_term = $request->get('search');
         if($search_term){

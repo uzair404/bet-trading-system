@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('reactions', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('source');
             $table->timestamps();
         });
     }

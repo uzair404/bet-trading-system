@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\PostReactions;
 use App\Models\Posts;
+use App\Models\Reactions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cookie;
@@ -74,20 +76,21 @@ class PostsController extends Controller
      */
     public function show($slug)
     {
-    	$post = Posts::where('slug',$slug)->first();
-        if(!$post){
+    	$data['post'] = Posts::where('slug',$slug)->first();
+    	$data['reactions'] = Reactions::all();
+        if(!$data['post']){
             return redirect('/blog')->with('error', 'Post Not Found');
         }
 
-        $cookie_name = (Auth::user()->id.'-'. $post->id);//logged in user
+        $cookie_name = (Auth::user()->id.'-'. $data['post']->id);//logged in user
         if(Cookie::get($cookie_name) == ''){//check if cookie is set
             $cookie = cookie($cookie_name, '1', 60);//set the cookie
-            $post->incrementReadCount();//count the view
+            $data['post']->incrementReadCount();//count the view
             return response()
-            ->view('post', compact('post'))
+            ->view('post', $data)
             ->withCookie($cookie);//store the cookie
         } else {
-            return view('post', compact('post'));
+            return view('post', $data);
         }
     }
 
@@ -161,6 +164,26 @@ class PostsController extends Controller
         $post = Posts::where('id', $id)->first();
         if(!$post){return redirect()->back()->with('error', 'Page Not Found'); }
         $post->delete();
-        return redirect()->back()->with('success', 'Post Deleted Successfully ');
+        return redirect()->back()->with('success', 'Post Deleted Successfully');
+    }
+
+    public function vote($post_id, $reaction_id)
+    {
+        //
+        $post = Posts::where('id', $post_id)->first();
+        $reaction = Reactions::where('id', $reaction_id)->first();
+        $post_reaction = PostReactions::where('post_id', $post_id)->where('user_id', Auth::user()->id)->first();
+        if(!$post || !$reaction){
+            return redirect()->back()->with('error', 'Failed To React');
+        }
+        if($post_reaction){
+            $post_reaction->delete();
+        }
+        $post_reaction = new PostReactions();
+        $post_reaction->user_id = Auth::user()->id;
+        $post_reaction->post_id = $post_id;
+        $post_reaction->reaction_id = $reaction_id;
+        $post_reaction->save();
+        return redirect()->back()->with('success', 'Thank You For Your Reaction');
     }
 }

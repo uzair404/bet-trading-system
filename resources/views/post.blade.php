@@ -11,19 +11,19 @@
                 font-weight: revert;
             }
 
-            .IconBox>span {
+            .IconBox>a>span {
                 font-size: 1rem;
                 font-weight: 700;
                 margin-left: -.5rem;
             }
 
-            .IconBox>img {
+            .IconBox>a>img {
                 width: 75px;
                 transition: .2s ease;
                 display: inline;
             }
 
-            .IconBox>img:hover {
+            .IconBox>a>img:hover {
                 transform: scale(1.25);
                 cursor: pointer;
             }
@@ -64,41 +64,19 @@
                 <div class="m-2 flex items-center flex-col">
                     <h2 class="2xl text-center">Whats Your Reaction?</h2>
                     <div class="reaction-icons">
-                        <div class="inline IconBox">
-                            <img clas="reactIcon" src="https://dropbox.com/s/rgfnea7od54xj4m/like.gif?raw=1"
-                                alt="Like emoji" />
-                            <span>0</span>
-                        </div>
-                        <div class="inline IconBox">
-                            <img clas="reactIcon" src="https://dropbox.com/s/sykc43x39wqxlkz/love.gif?raw=1"
-                                alt="Love emoji" />
-                            <span>0</span>
 
-                        </div>
-                        <div class="inline IconBox">
-                            <img clas="reactIcon" src="https://dropbox.com/s/vdg0a8i0kyd16zk/haha.gif?raw=1"
-                                alt="Haha emoji" />
-                            <span>0</span>
-
-                        </div>
-                        <div class="inline IconBox">
-                            <img clas="reactIcon" src="https://dropbox.com/s/ydl0fm5kayxz0e5/wow.gif?raw=1"
-                                alt="Wow emoji" />
-                            <span>0</span>
-
-                        </div>
-                        <div class="inline IconBox">
-                            <img clas="reactIcon" src="https://dropbox.com/s/52n5woibt3vrs76/sad.gif?raw=1"
-                                alt="Sad emoji" />
-                            <span>0</span>
-
-                        </div>
-                        <div class="inline IconBox">
-                            <img clas="reactIcon" src="https://dropbox.com/s/kail2xnglbutusv/angry.gif?raw=1"
-                                alt="Angry emoji" />
-                            <span>0</span>
-
-                        </div>
+                        @foreach ($reactions as $reaction)
+                            @php
+                                $reaction_count = \App\Models\PostReactions::where('reaction_id', $reaction->id)->where('post_id', $post->id)->count();
+                            @endphp
+                            <div class="inline IconBox">
+                                <a href="{{route('react', ['post_id'=>$post->id,'reaction_id'=>$reaction->id])}}">
+                                    <img clas="reactIcon" src="{{$reaction->source}}"
+                                        alt="Like emoji" />
+                                    <span>{{$reaction_count}}</span>
+                                </a>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
 
